@@ -1,0 +1,1 @@
+# compeition-registration-service
