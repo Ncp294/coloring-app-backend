@@ -1,0 +1,15 @@
+from typing import Optional
+
+from pydantic import BaseModel
+
+
+class Dependency(BaseModel):
+    service: str
+    status: str
+    response_time_ms: int
+
+
+class HealthData(BaseModel):
+    service: str
+    status: str
+    dependencies: Optional[list[Dependency]]

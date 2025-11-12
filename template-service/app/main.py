@@ -3,7 +3,8 @@ import time
 
 import redis
 from fastapi import FastAPI
-from models import Dependency, HealthData
+
+from .models import Dependency, HealthData
 
 app = FastAPI()
 
