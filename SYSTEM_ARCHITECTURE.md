@@ -26,8 +26,10 @@ The other communication will occur through a redis client instantiated at both s
 - Docker Compose
     - Organizes services, networks, volumes, and dependencies properly.
 - httpx
-    - Allows communication between services in order to cross check health
+    - Allows communication between services in order to cross check health.
 - redis
     - Allows for a quick and easily health-checkable database to be integrated.
 - Pydantic
     - Allows for easy verification of data going in and out of the system.
+- nginx
+    - Allows for easy management of api requests and testing, as well as scalability across services.
