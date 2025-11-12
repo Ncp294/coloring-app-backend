@@ -23,7 +23,7 @@ async def health_check():
 
     redisStart = time.perf_counter()
     try:
-        pong = await redisClient.ping()
+        pong = redisClient.ping()
         if pong:
             redisStatus = "healthy"
         else:

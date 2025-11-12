@@ -1,6 +1,7 @@
 import os
 import time
 
+import httpx
 import redis
 from fastapi import FastAPI
 
@@ -21,10 +22,11 @@ redisClient = redis.Redis(
 async def health_check():
     dependencies = []
     redisStatus = ""
+    templateStatus = ""
 
     redisStart = time.perf_counter()
     try:
-        pong = await redisClient.ping()
+        pong = redisClient.ping()
         if pong:
             redisStatus = "healthy"
         else:
@@ -39,10 +41,16 @@ async def health_check():
     dependencies.append(redis)
 
     templateStart = time.perf_counter()
-    # TODO: template httpx request
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(f'http://template-service:8000/health')
+    print(resp.content)
+    if resp.status_code == 200:
+        templateStatus = "healthy"
+    else:
+        templateStatus = "unhealthy"
     templateTime = time.perf_counter() - templateStart
     template: Dependency = Dependency(service="template-service",
-                                      status="healthy",
+                                      status=templateStatus,
                                       response_time_ms=int(templateTime * 1000))
     dependencies.append(template)
 
