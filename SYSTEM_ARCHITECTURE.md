@@ -1,24 +1,22 @@
 # System Architecture
 
 ## System Purpose
-This system provides a database organization for compeitions. It allows administrators to create competitions in the database. Users are then able to make an account and register their account to previously created competitions.
+This system provides a backend for a coloring application. It allows users to register and create their own custom templates to color on in the application. The template service converts user submitted images into coloring templates and returns them to the user. It also manages a public template database in case users wish to share their templates.
 
 ## Service Boundaries
-The admin-service is responsible for the oversight and management of the competitions themselves. Admins are able to create competitons, view the people registered to them, add registrations, and remove registrations.
+The template-service is responsible for the oversight and management of the templates. This service will create templates from images, send templates to user profiles, and add or remove templates from the public database.
 
-The user-service is responsible for allowing users to define their information and self register or remove themselves from competitions. This service can also view the list of competitions but cannot edit any entries aside from their own.
+The user-service is responsible for allowing users to define their information to register for the application. They are also able to upload images to become templates, as well as access the public database and their own personal database of templates.
 
-These services are separated in order to ensure that the people running the competitions have full access to records, without allowing competitors the same oversight. This way any managerial duties can be carried out by only authorized users.
+These services are separated in order to ensure that the users can only access templates allowed to them, as not all users would wish to share their own. Additionally, it will help easily enforce moderation over the public database by separating it into its own admin-like serivce.
 
 ## Data Flow
-Both the user and admin services will rely on the health of each other in order for the system to function entirely. While some functions such as creation of new competitions or users can be done with no crossover, other functions such as viewing and editing registrations or self registration will require access to the other service.
+The user-service will rely on the template-service to complete some of its function, but the template service can stand alone.
 
-Due to this, health checks at both services must ensure the services themselves are up at the bare minimum. Beyond that, health checks should include reaching to the other service as well as the redis database to ensure all functionality would be available.
-
-This means when either service receives a full health check, it will also pull data from the other service's health check, as well as pinging redis.
+Due to this, health checks at the template-service can simply focus on itself and the public database, while the user-service checks will reach out to the template-service in addition to itself and the user specific database.
 
 ## Communication Patterns
-In order to obtain the health check from the other service, httpx will be used. This will request the other services base health check to ensure it is up and running.
+In order to obtain the health check from the template-service, the user-service will use httpx to send a request to that health check.
 
 The other communication will occur through a redis client instantiated at both services. This will send a ping command using the redis python library.
 

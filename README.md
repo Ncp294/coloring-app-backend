@@ -1,5 +1,5 @@
-# compeition-registration-service
-This project is the backend system for a competition registration system. It allows administrators to create a competition in a database, and then allows users to create accounts and register themselves for competitions.
+# coloring-app-backend
+This project is the backend system for a coloring app. It allows users to register for the app, create custom templates, and store their works. The template service processes user images into templates and manages the public template database if users wish to share their templates.
 
 ## Architecture Overview (TODO: Write)
 High-level description of your services and their interactions.
@@ -30,7 +30,7 @@ competition-registration-system/\
 ├── SYSTEM_ARCHITECTURE.md\
 ├── architecture-diagram.png\
 ├── docker-compose.yml\
-├── admin-service/\
+├── template-service/\
 │&emsp;&ensp;├── Dockerfile\
 │&emsp;&ensp;├── requirements.txt\
 │&emsp;&ensp;├── main.py\
