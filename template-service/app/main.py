@@ -140,3 +140,5 @@ def addTemplate(template: TemplateCreate, session: Session = Depends(getSession)
                 f"TEMPLATE SERVICE: Redis unavailable, cannot invalidate cache for {template.template_id}. ({e})")
         logging.info(
             f"TEMPLATE SERVICE: Cache entry for {template.template_id} invalidated.")
+
+    return newTemplate.model_dump()

@@ -97,4 +97,4 @@ async def sendTemplate(template: TemplateCreate):
         logging.info(
             f'USER SERVICE: Sending tempplate {template.template_id} to template service for processing and storage.')
         resp = await client.post(f'http://template-service:8000/template', json=data)
-        return resp
+        return resp.content
