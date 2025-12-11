@@ -82,7 +82,7 @@ async def getTemplate(user_id: str, template_id: str):
             logging.error(f'USER SERVICE: Template {template_id} not found')
         else:
             logging.info(
-                f'USER SERVICE: Template {template_id} succesfully fetched from template service.')
+                f'USER SERVICE: Template {template_id} successfully fetched from template service.')
             data = resp.json()
             return data
 
