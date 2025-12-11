@@ -13,3 +13,10 @@ class HealthData(BaseModel):
     service: str
     status: str
     dependencies: Optional[list[Dependency]]
+
+
+class TemplateCreate(BaseModel):
+    template_id: str
+    user_id: str
+    public: bool
+    img: str  # placeholder for some sort of image storage

@@ -1,23 +1,14 @@
 import os
 
-from sqlmodel import Field, Session, SQLModel, create_engine, select
+from sqlmodel import Session, SQLModel, create_engine, select
+
+from .models import Template
 
 # Load the Postgres DSN (connection string) from environment variables
 PG_DSN = os.getenv("PG_DSN")
 
 # Create the SQLAlchemy engine that connects to your database
 engine = create_engine(PG_DSN)  # type: ignore
-
-
-# define the Template model — represents one table in Postgres
-class Template(SQLModel, table=True):
-    __tablename__ = "template"  # type: ignore # matches our table name in SQL
-
-    id: int = Field(primary_key=True)
-    template_id: str = Field(unique=True)
-    user_id: str
-    public: bool
-    img: str  # placeholder for some sort of image storage
 
 
 # create tables if they don't exist

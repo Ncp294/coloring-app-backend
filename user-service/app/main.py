@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 
@@ -5,7 +6,7 @@ import httpx
 import redis
 from fastapi import FastAPI
 
-from .models import Dependency, HealthData
+from .models import Dependency, HealthData, TemplateCreate
 
 app = FastAPI()
 
@@ -14,6 +15,16 @@ redisClient = redis.Redis(
     host=os.getenv("REDIS_HOST", "redis"),
     port=int(os.getenv("REDIS_PORT", 6379)),
     decode_responses=True
+)
+
+
+# Logging setup
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler()
+    ]
 )
 
 
@@ -59,3 +70,31 @@ async def health_check():
                                         dependencies=dependencies)
 
     return healthData
+
+
+# Fetch a template from the template service
+@app.get("/template/{user_id}/{template_id}", status_code=200)
+async def getTemplate(user_id: str, template_id: str):
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(f'http://template-service:8000/template/{user_id}/{template_id}')
+
+        if resp.status_code != 200:
+            logging.error(f'USER SERVICE: Template {template_id} not found')
+        else:
+            logging.info(
+                f'USER SERVICE: Template {template_id} succesfully fetched from template service.')
+            data = resp.json()
+            return data
+
+
+# Send a template to the template service
+@app.post("/template", status_code=201)
+async def sendTemplate(template: TemplateCreate):
+
+    data = template.model_dump()
+
+    async with httpx.AsyncClient() as client:
+        logging.info(
+            f'USER SERVICE: Sending tempplate {template.template_id} to template service for processing and storage.')
+        resp = await client.post(f'http://template-service:8000/template', json=data)
+        return resp
