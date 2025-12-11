@@ -20,3 +20,10 @@ class TemplateCreate(BaseModel):
     user_id: str
     public: bool
     img: str  # placeholder for some sort of image storage
+
+
+class TemplateResponse(BaseModel):
+    template_id: str
+    user_id: str
+    public: bool
+    img: str  # placeholder for some sort of image storage

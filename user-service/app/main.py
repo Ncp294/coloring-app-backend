@@ -6,7 +6,7 @@ import httpx
 import redis
 from fastapi import FastAPI
 
-from .models import Dependency, HealthData, TemplateCreate
+from .models import Dependency, HealthData, TemplateCreate, TemplateResponse
 
 app = FastAPI()
 
@@ -84,7 +84,10 @@ async def getTemplate(user_id: str, template_id: str):
             logging.info(
                 f'USER SERVICE: Template {template_id} successfully fetched from template service.')
             data = resp.json()
-            return data
+            return TemplateResponse(template_id=data.template_id,
+                                    user_id=data.user_id,
+                                    public=data.public,
+                                    img=data.img)
 
 
 # Send a template to the template service
@@ -98,3 +101,11 @@ async def sendTemplate(template: TemplateCreate):
             f'USER SERVICE: Sending tempplate {template.template_id} to template service for processing and storage.')
         resp = await client.post(f'http://template-service:8000/template', json=data)
         return resp.content
+
+
+# Toggle a template's public status
+@app.put("/template/{user_id}/{template_id}", status_code=200)
+async def changePublicity(user_id: str, template_id: str, public: bool):
+    template = await getTemplate(user_id, template_id)
+    if isinstance(template, TemplateResponse) and template.user_id == user_id:
+        template.public = public
