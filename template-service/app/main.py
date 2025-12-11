@@ -1,18 +1,40 @@
+import json
+import logging
 import os
 import time
+from contextlib import asynccontextmanager
 
 import redis
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
+from sqlmodel import Session
 
-from .models import Dependency, HealthData
+from .db import close_db_connection, getSession, getTemplateById, init_db
+from .models import Dependency, HealthData, Template
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+    close_db_connection()
+
+app = FastAPI(lifespan=lifespan)
 
 # Connect to redis
 redisClient = redis.Redis(
     host=os.getenv("REDIS_HOST", "redis"),
     port=int(os.getenv("REDIS_PORT", 6379)),
     decode_responses=True
+)
+
+
+# Logging setup
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler()
+    ]
 )
 
 
@@ -42,3 +64,45 @@ async def health_check():
                                         dependencies=dependencies)
 
     return healthData
+
+
+@app.get("/template/{user_id}/{template_id}", status_code=200)
+def getTemplate(user_id: str, template_id: str, session: Session = Depends(getSession)):
+    logging.info(
+        f"TEMPLATE SERVICE: request received for template {template_id}")
+
+    # check cache
+    if redisClient.exists(template_id):
+        value = redisClient.get(template_id)
+        logging.info(f"TEMPLATE SERVICE: CACHE HIT with id {template_id}")
+
+        if isinstance(value, str):
+            data = json.loads(value)
+
+        template: Template = Template(template_id=data["template_id"],
+                                      user_id=data["user_id"],
+                                      public=data["public"],
+                                      img=data["image"])
+
+        # check userID match or listed public
+        if template.public or template.user_id == user_id:
+            return template
+
+    # if miss, get stored data and then cache
+    logging.info(
+        f"TEMPLATE SERVICE: CACHE MISS with template {template_id}: fetching from database")
+    data = getTemplateById(session, template_id)
+    if not data:
+        logging.error(
+            f'TEMPLATE SERVICE: Template {template_id} does not exist in cache or database.')
+    else:
+        ttl = int(os.getenv("TTL_SECONDS", 3300))
+        try:
+            redisClient.setex(template_id, ttl, json.dumps(data))
+            logging.info(
+                f'TEMPLATE SERVICE: stored data in Redis with TTL={ttl} for {template_id}')
+        except Exception as e:
+            logging.info(
+                f'TEMPLATE SERVICE: failed to write to Redis for {template_id} ({e})')
+
+        return data
